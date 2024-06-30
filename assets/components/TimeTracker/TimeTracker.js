@@ -56,6 +56,16 @@ class TimeTracker {
 
         this.updateActiveTimerEachSecond();
         this.loadedPromiseResolver();
+
+        window.addEventListener('beforeunload', function (e) {
+            if(this.timersData.length < 1 && timersDataAccumulated.size < 1) {
+                return;
+            }
+            e.preventDefault(); 
+            e.returnValue = '';
+            return 'Si sales de esta página, podrías perder tus datos.';
+        }.bind(this));
+
         console.log("TimeTracker. initialized");
     }
 
