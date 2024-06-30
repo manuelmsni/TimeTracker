@@ -115,21 +115,31 @@ async function load() {
     }
 }
 
-class DateFormatter{
-
-    static getDate(date = new Date()){
-        return `${date.getDay()}/${date.getMonth()}/${date.getFullYear()}`;
+class DateFormatter {
+    static getDate(date = new Date()) {
+        return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
     }
 
-    static getTime(date = new Date()){
+    static getTime(date = new Date()) {
         return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
     }
 
-    static fromString(text){
+    static getDateTime(date = new Date()) {
+        return `${this.getDate(date)} ${this.getTime(date)}`;
+    }
+
+    static fromString(text) {
         const parts = text.split(' ');
         const date = parts[0].split('/');
         const time = parts[1].split(':');
-        return new Date(date[0], date[1], date[2], time[0], time[1], time[2]);
+        return new Date(
+            parseInt(date[2], 10), 
+            parseInt(date[1], 10) - 1, 
+            parseInt(date[0], 10),
+            parseInt(time[0], 10),
+            parseInt(time[1], 10),
+            parseInt(time[2], 10)
+        );
     }
 }
 

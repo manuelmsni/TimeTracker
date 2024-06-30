@@ -20,10 +20,15 @@ class TimeTracker {
     pauseButton;
     newTimerButton;
     timerContainer;
+
     timers;
     timersData;
+    timersDataAccumulated;
+
+    activeTimerLabel;
 
     historicTable;
+
 
     constructor() {
         this.loaded = new Promise((resolve) => {
@@ -31,7 +36,9 @@ class TimeTracker {
         });
         this.timers = [];
         this.timersData = [];
+        this.timersDataAccumulated = new Map();
     }
+
     static async getInstance(){
         if (TimeTracker.instance == null) {
             TimeTracker.instance = new TimeTracker();
@@ -40,6 +47,7 @@ class TimeTracker {
         await TimeTracker.instance.loaded;
         return TimeTracker.instance;
     }
+
     async init() {
         await loadStyle('TimeTracker');
         this.historicTable = await getInstance('HistoricTable');
@@ -49,6 +57,7 @@ class TimeTracker {
         this.loadedPromiseResolver();
         console.log("TimeTracker. initialized");
     }
+
     initBaseHtml(){
         this.container = document.createElement('section');
         this.container.id = 'time-tracker';
@@ -56,7 +65,7 @@ class TimeTracker {
 
         this.totalTimeLabel = this.container.querySelector('#time-tracker-total-time');
         this.pauseButton = this.container.querySelector('#time-tracker-pause');
-        this.pauseButton.addEventListener('click', this.pause);
+        this.pauseButton.addEventListener('click', this.pause.bind(this));
 
         this.timerContainer = this.container.querySelector('#timer-container');
 
@@ -68,23 +77,64 @@ class TimeTracker {
 
         document.body.appendChild(this.container);
     }
+
     pause(){
-        document.body.querySelectorAll('.active-timer').forEach(element => element.classList.remove('active-timer'));
-        console.log('pause');
+        let pauseTimer = this.timers.find(timer => timer.id === 'pause');
+
+        if (!pauseTimer) {
+            pauseTimer = this.newTimer('pause', 'Pausa', ['pause']);
+        }
+
+        pauseTimer.start();
     }
 
     newTimer(id = newObjectId(), code = null, timerLabels = []){
         const timer = new Timer(this.timerContainer, this.timersData, id, code, timerLabels);
         this.timers.push(timer);
+        return timer;
     }
 
     addRegister(register){
         this.historicTable.addRegister(register);
-        this.updateTimeLabels();
+        this.updateTimeLabel();
     }
 
-    updateTimeLabels() {
-        
+    updateTimeLabel() {
+        var lastTimerIndex = this.timersData.length - 1;
+        if (lastTimerIndex < 0) {
+            return;
+        }
+
+        var lastTimeRegister = this.timersData[lastTimerIndex];
+        var time = DateFormatter.fromString(lastTimeRegister[3]).getTime();
+
+        if (lastTimerIndex == 0) {
+            return;
+        }
+
+        var previousTimeRegister = this.timersData[lastTimerIndex - 1];
+        var previousTime = DateFormatter.fromString(previousTimeRegister[3]).getTime();
+
+        var timeDiff = time - previousTime;
+        var currentTotalForThatRegister = this.timersDataAccumulated.get(previousTimeRegister[0]) || 0;
+        currentTotalForThatRegister += timeDiff;
+        this.timersDataAccumulated.set(previousTimeRegister[0], currentTotalForThatRegister);
+
+        let formattedTime = this.formatTime(currentTotalForThatRegister);
+
+        this.activeTimerLabel = document.getElementById(previousTimeRegister[0]);
+        this.activeTimerLabel.innerText = formattedTime;
+    }
+
+    formatTime(ms) {
+        let hours = Math.floor(ms / (1000 * 60 * 60));
+        let minutes = Math.floor((ms / (1000 * 60)) % 60);
+        let seconds = Math.floor((ms / 1000) % 60);
+        return [
+            hours.toString().padStart(2, '0'),
+            minutes.toString().padStart(2, '0'),
+            seconds.toString().padStart(2, '0')
+        ].join(':');
     }
 }
 
@@ -115,7 +165,7 @@ class Timer {
     timerLabels;
     
     
-    constructor(parentElement, timersData, id = newObjectId(), code = null, timerLabels = []) {
+    constructor(parentElement, timersData, id, code = "", timerLabels = []) {
         this.parentElement = parentElement;
         this.timersData = timersData;
         this.timerLabels = timerLabels;
@@ -139,14 +189,15 @@ class Timer {
         this.timerStartButton.addEventListener('click', this.start.bind(this));
 
         this.timerCodeInput = this.container.querySelector('.timer-code');
-        if(this.code){
-            this.timerCodeInput.value = this.code;
-        }
+        this.timerCodeInput.value = this.code;
+        this.timerCodeInput.addEventListener('blur', () => {
+            this.code = this.timerCodeInput.value
+        });
 
         this.timerLabelsInput = this.container.querySelector('.timer-labels');
         this.timerLabelsInput.value = this.timerLabels.join(', ');
         this.timerLabelsInput.addEventListener('blur', () => {
-        this.timerLabels = this.timerLabelsInput.value
+            this.timerLabels = this.timerLabelsInput.value
             .split(',')
             .map(label => label.trim().toLowerCase());
         });
@@ -160,12 +211,12 @@ class Timer {
         if(this.container.classList.contains('active-timer')){
             return;
         }
-        this.timersData.push([this.id, this.code, DateFormatter.getTime()]);
+        this.timersData.push([this.id, this.code, this.timerLabels, DateFormatter.getDateTime()]);
         document.body.querySelectorAll('.active-timer').forEach(element => element.classList.remove('active-timer'));
         this.container.classList.add('active-timer');
         console.log(this.timersData);
 
-        (await TimeTracker.getInstance()).addRegister([this.code, this.timerLabels.join(', '), DateFormatter.getTime()]);
+        (await TimeTracker.getInstance()).addRegister([this.code, DateFormatter.getDateTime()]);
     }
 }
 
