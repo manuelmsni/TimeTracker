@@ -22,6 +22,9 @@ class TimeTracker {
     timerContainer;
     timers;
     timersData;
+
+    historicTable;
+
     constructor() {
         this.loaded = new Promise((resolve) => {
             this.loadedPromiseResolver = resolve;
@@ -39,6 +42,8 @@ class TimeTracker {
     }
     async init() {
         await loadStyle('TimeTracker');
+        this.historicTable = await getInstance('HistoricTable');
+
         this.initBaseHtml();
 
         this.loadedPromiseResolver();
@@ -58,17 +63,24 @@ class TimeTracker {
         this.newTimerButton = this.container.querySelector('#time-tracker-new');
         this.newTimerButton.addEventListener('click', this.newTimer.bind(this));
 
-        this.newTimer();
+        this.newTimer(newObjectId(), 'Daily', ['daily']);
+        this.newTimer(newObjectId(), 'Descanso', ['descanso']);
 
         document.body.appendChild(this.container);
     }
     pause(){
+        document.body.querySelectorAll('.active-timer').forEach(element => element.classList.remove('active-timer'));
         console.log('pause');
     }
 
-    newTimer(){
-        const timer = new Timer(this.timerContainer, this.timersData);
+    newTimer(id = newObjectId(), code = null, timerLabels = []){
+        const timer = new Timer(this.timerContainer, this.timersData, id, code, timerLabels);
         this.timers.push(timer);
+    }
+
+    addRegister(register){
+        this.historicTable.addRegister(register);
+        this.updateTimeLabels();
     }
 
     updateTimeLabels() {
@@ -78,23 +90,38 @@ class TimeTracker {
 
 class Timer {
     html =`
-        <h4 class="time-label">00:00:00</h4>
         <div class="inputGroup">
-            <input type="text" required="" autocomplete="off" class="timer-input">
+            <input type="text" required="" autocomplete="off" class="timer-code">
             <label>Code</label>
         </div>
+        <div class="inputGroup">
+            <input type="text" required="" autocomplete="off" class="timer-labels">
+            <label>Labels</label>
+        </div>
+        <h4 class="time-label">00:00:00</h4>
         <button class="timer-start">Start</button>
     `;
+    timersData;
+
     parentElement;
     container;
+    timerCodeInput;
+    timerLabelsInput;
     timerStartButton;
-    id;
-    timersData;
     timeLabel;
-    constructor(parentElement, timersData, id = newObjectId()) {
-        this.id = id;
+
+    id;
+    code;
+    timerLabels;
+    
+    
+    constructor(parentElement, timersData, id = newObjectId(), code = null, timerLabels = []) {
         this.parentElement = parentElement;
         this.timersData = timersData;
+        this.timerLabels = timerLabels;
+        this.id = id;
+        this.code = code;
+
         this.init();
     }
     init() {
@@ -111,12 +138,25 @@ class Timer {
         this.timerStartButton = this.container.querySelector('.timer-start');
         this.timerStartButton.addEventListener('click', this.start.bind(this));
 
+        this.timerCodeInput = this.container.querySelector('.timer-code');
+        if(this.code){
+            this.timerCodeInput.value = this.code;
+        }
+
+        this.timerLabelsInput = this.container.querySelector('.timer-labels');
+        this.timerLabelsInput.value = this.timerLabels.join(', ');
+        this.timerLabelsInput.addEventListener('blur', () => {
+        this.timerLabels = this.timerLabelsInput.value
+            .split(',')
+            .map(label => label.trim().toLowerCase());
+        });
+
         if(this.parentElement){
             this.parentElement.appendChild(this.container);
         }
     }
 
-    start(){
+    async start(){
         if(this.container.classList.contains('active-timer')){
             return;
         }
@@ -124,19 +164,8 @@ class Timer {
         document.body.querySelectorAll('.active-timer').forEach(element => element.classList.remove('active-timer'));
         this.container.classList.add('active-timer');
         console.log(this.timersData);
-    }
-}
 
-class DateFormatter{
-    static getTime(date = new Date()){
-        date = new Date(date);
-        return `${date.getDay()}/${date.getMonth()}/${date.getFullYear()}  ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-    }
-    static fromString(text){
-        const parts = text.split(' ');
-        const date = parts[0].split('/');
-        const time = parts[1].split(':');
-        return new Date(date[0], date[1], date[2], time[0], time[1], time[2]);
+        (await TimeTracker.getInstance()).addRegister([this.code, this.timerLabels.join(', '), DateFormatter.getTime()]);
     }
 }
 

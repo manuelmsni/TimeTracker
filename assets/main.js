@@ -101,7 +101,8 @@ async function getInstance(className) {
 async function loadDependencies(){
     
     Promise.all([
-        getInstance('TimeTracker')
+        getInstance('TimeTracker'),
+        getInstance('HistoricTable')
     ]);
 
 }
@@ -111,6 +112,24 @@ async function load() {
         loadDependencies();
     } catch (error) {
         console.error(error);
+    }
+}
+
+class DateFormatter{
+
+    static getDate(date = new Date()){
+        return `${date.getDay()}/${date.getMonth()}/${date.getFullYear()}`;
+    }
+
+    static getTime(date = new Date()){
+        return `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+    }
+
+    static fromString(text){
+        const parts = text.split(' ');
+        const date = parts[0].split('/');
+        const time = parts[1].split(':');
+        return new Date(date[0], date[1], date[2], time[0], time[1], time[2]);
     }
 }
 

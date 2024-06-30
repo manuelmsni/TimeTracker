@@ -2,6 +2,8 @@
     background-color: black;
     overflow: hidden;
     border-radius: 1rem;
+    margin: 1rem;
+    box-sizing: border-box;
 }
 
 #time-tracker-header {
@@ -12,8 +14,7 @@
     justify-content: space-around;
     flex-wrap: wrap;
 
-    padding: 1rem;
-
+    border-bottom: 2px solid #282828;
     background-color: white;
 }
 
@@ -31,6 +32,7 @@
 
     padding: 1rem;
 
+    border-top: 2px solid #282828;
     background-color: white;
 }
 
@@ -48,8 +50,27 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-around;
-    padding: 1rem;
+
+    padding: .5rem;
 }
+
+.timer.active-timer {
+    box-shadow: inset 0px 0px 2px 3px #e97ec4;
+}
+
+.timer.active-timer button {
+    opacity: 0.3;
+    cursor: auto;
+}
+
+.timer.active-timer button:hover,
+.timer.active-timer button:focus-visible {
+  --_p: var(--s);
+  outline: var(--b) solid #0000;
+  outline-offset: .6em;
+}
+
+
 
 #timer-container .timer:nth-child(even) .inputGroup :is(input:focus, input:valid)~label {
     background-color: white;

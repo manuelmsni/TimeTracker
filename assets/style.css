@@ -1,17 +1,19 @@
 body {
-    font-family: 'Roboto', sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #282828;
-    color: #373B44;
+  column-count: 2;
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  padding-top: 1rem;
+  background-color: #282828;
+  color: #373B44;
 }
 
 button {
   --b: 3px;   /* border thickness */
-  --s: .45em; /* size of the corner */
+  --s: .2em; /* size of the corner */
   --color: #373B44;
   
-  padding: calc(.5em + var(--s)) calc(.9em + var(--s));
+  padding: calc(.3em + var(--s)) calc(.4em + var(--s));
   color: var(--color);
   --_p: var(--s);
   background:
@@ -46,7 +48,6 @@ button:active {
 .inputGroup {
     font-family: 'Segoe UI', sans-serif;
     margin: 1em 0 1em 0;
-    max-width: 190px;
     position: relative;
 }
   
@@ -58,13 +59,13 @@ button:active {
     background-color: transparent;
     border-radius: 20px;
     width: 100%;
+    box-sizing: border-box;
 }
   
 .inputGroup label {
     font-size: 100%;
     position: absolute;
     left: 0;
-    transform: translateY(-100%);
     padding: 0.8em;
     margin-left: 0.5em;
     pointer-events: none;
