@@ -5,19 +5,22 @@ class TimeTracker {
     html =`
         <div id="time-tracker-header">
             <h1>Time Tracker</h1>
-            <h3 id="time-tracker-total-time">00:00:00</h3>
+            <h3><span class="light">Total:</span> <span id="time-tracker-total-time">00:00:00</span></h3>
+            
             <button id="time-tracker-pause">Pause</button>
         </div>
         <div id='timer-container'>
         </div>
         <div id='time-tracker-footer'>
             <button id="time-tracker-new">New</button>
+            <button id="time-tracker-export">Export</button>
         </div>
     `;
     container;
     totalTime = 0;
     totalTimeLabel;
     pauseButton;
+    exportButton;
     newTimerButton;
     timerContainer;
 
@@ -75,8 +78,31 @@ class TimeTracker {
         this.container.innerHTML = this.html;
 
         this.totalTimeLabel = this.container.querySelector('#time-tracker-total-time');
+
         this.pauseButton = this.container.querySelector('#time-tracker-pause');
         this.pauseButton.addEventListener('click', this.pause.bind(this));
+
+        this.exportButton = this.container.querySelector('#time-tracker-export');
+        this.exportButton.addEventListener('click', () => {
+            var csv = 'data:text/csv;charset=utf-8,';
+            this.timers.forEach(timer => {
+                var time;
+                if (timer.id == this.activeTimerLabel.id) {
+                    time = this.getActiveAccumulatedTime();
+                } else{
+                    time = this.timersDataAccumulated.get(timer.id);
+                }
+                time = (time ? this.formatTime(time) : this.formatTime(0));
+                csv += timer.code + ';' + timer.timerLabels.join(',') + ';' + time + '\n';
+            });
+            var encodedUri = encodeURI(csv);
+            var link = document.createElement('a');
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', `${DateFormatter.fileNameFormatDate()}_register.csv`);
+            document.body.appendChild(link);
+            link.click();
+        });
+
 
         this.timerContainer = this.container.querySelector('#timer-container');
 
@@ -90,19 +116,26 @@ class TimeTracker {
     }
 
     pause(){
-        let pauseTimer = this.timers.find(timer => timer.id === 'pause');
+        let pauseTimer = this.getTimerByCode('pause');
 
         if (!pauseTimer) {
-            pauseTimer = this.newTimer('pause', 'Pausa', ['pause']);
+            pauseTimer = this.newTimer(newObjectId(), 'Pausa', ['pause']);
         }
 
         pauseTimer.start();
     }
 
     newTimer(id = newObjectId(), code = null, timerLabels = []){
+        if (code != null && this.getTimerByCode(code)) {
+            return;
+        }
         const timer = new Timer(this.timerContainer, this.timersData, id, code, timerLabels);
         this.timers.push(timer);
         return timer;
+    }
+
+    getTimerByCode(code){
+        return this.timers.find(timer => timer.code === code);
     }
 
     addRegister(register){
@@ -154,6 +187,20 @@ class TimeTracker {
             this.totalTime = Array.from(this.timersDataAccumulated.values()).reduce((acc, time) => acc + time, 0);
             this.totalTimeLabel.innerText = this.formatTime(this.totalTime + timeSinceLastRegister);
         }, 1000);
+    }
+
+    getActiveAccumulatedTime(){
+        var accumulatedTime = this.timersDataAccumulated.get(this.activeTimerLabel.id);
+        if(!accumulatedTime){
+            accumulatedTime = 0;
+        }
+
+        var lastTimeRegister = this.timersData[this.timersData.length - 1];
+        var lastTime = DateFormatter.fromString(lastTimeRegister[3]).getTime();
+
+        var timeSinceLastRegister = new Date() - lastTime;
+
+        return accumulatedTime + timeSinceLastRegister;
     }
 
     formatTime(ms) {
