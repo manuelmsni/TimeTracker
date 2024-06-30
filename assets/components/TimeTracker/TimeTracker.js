@@ -76,7 +76,7 @@ class TimeTracker {
         this.newTimer(newObjectId(), 'Daily', ['daily']);
         this.newTimer(newObjectId(), 'Descanso', ['descanso']);
 
-        document.body.appendChild(this.container);
+        document.body.prepend(this.container);
     }
 
     pause(){
@@ -138,8 +138,6 @@ class TimeTracker {
             var timeSinceLastRegister = new Date() - lastTime;
 
             var totalTime = accumulatedTime + timeSinceLastRegister;
-
-            console.log(totalTime);
 
             this.activeTimerLabel.innerText = this.formatTime(totalTime);
 

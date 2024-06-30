@@ -1,8 +1,6 @@
 #historic-table-container{
-    width: 100%;
     box-sizing: border-box;
     border-radius: 1rem;
-    margin: 1rem;
     margin-top: 0;
     overflow: hidden;
     text-align: center;
