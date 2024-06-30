@@ -54,6 +54,7 @@ class TimeTracker {
 
         this.initBaseHtml();
 
+        this.updateActiveTimerEachSecond();
         this.loadedPromiseResolver();
         console.log("TimeTracker. initialized");
     }
@@ -119,11 +120,32 @@ class TimeTracker {
         var currentTotalForThatRegister = this.timersDataAccumulated.get(previousTimeRegister[0]) || 0;
         currentTotalForThatRegister += timeDiff;
         this.timersDataAccumulated.set(previousTimeRegister[0], currentTotalForThatRegister);
+    }
 
-        let formattedTime = this.formatTime(currentTotalForThatRegister);
+    updateActiveTimerEachSecond(){
+        setInterval(() => {
+            if(!this.activeTimerLabel){
+                return;
+            }
+            var accumulatedTime = this.timersDataAccumulated.get(this.activeTimerLabel.id);
+            if(!accumulatedTime){
+                accumulatedTime = 0;
+            }
 
-        this.activeTimerLabel = document.getElementById(previousTimeRegister[0]);
-        this.activeTimerLabel.innerText = formattedTime;
+            var lastTimeRegister = this.timersData[this.timersData.length - 1];
+            var lastTime = DateFormatter.fromString(lastTimeRegister[3]).getTime();
+
+            var timeSinceLastRegister = new Date() - lastTime;
+
+            var totalTime = accumulatedTime + timeSinceLastRegister;
+
+            console.log(totalTime);
+
+            this.activeTimerLabel.innerText = this.formatTime(totalTime);
+
+            this.totalTime = Array.from(this.timersDataAccumulated.values()).reduce((acc, time) => acc + time, 0);
+            this.totalTimeLabel.innerText = this.formatTime(this.totalTime + timeSinceLastRegister);
+        }, 1000);
     }
 
     formatTime(ms) {
@@ -217,6 +239,8 @@ class Timer {
         console.log(this.timersData);
 
         (await TimeTracker.getInstance()).addRegister([this.code, DateFormatter.getDateTime()]);
+
+        (await TimeTracker.getInstance()).activeTimerLabel = document.getElementById(this.id);
     }
 }
 
