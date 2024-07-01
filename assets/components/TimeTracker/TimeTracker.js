@@ -107,7 +107,9 @@ class TimeTracker {
         this.timerContainer = this.container.querySelector('#timer-container');
 
         this.newTimerButton = this.container.querySelector('#time-tracker-new');
-        this.newTimerButton.addEventListener('click', this.newTimer.bind(this));
+        this.newTimerButton.addEventListener('click', () => {
+            this.newTimer(newObjectId(), null, []);
+        });
 
         this.newTimer(newObjectId(), 'Daily', ['daily']);
         this.newTimer(newObjectId(), 'Descanso', ['descanso']);
@@ -126,6 +128,17 @@ class TimeTracker {
     }
 
     newTimer(id = newObjectId(), code = null, timerLabels = []){
+        if (id instanceof Event) {
+            id = newObjectId();
+        }
+        if(code === null) {
+            var count = 0;
+            // Check correctly for undefined here
+            while(this.getTimerByCode(`timer-${count}`) !== undefined) {
+                count++;
+            }
+            code = `Timer${count}`;
+        }
         if (code != null && this.getTimerByCode(code)) {
             return;
         }
@@ -165,9 +178,11 @@ class TimeTracker {
         this.timersDataAccumulated.set(previousTimeRegister[0], currentTotalForThatRegister);
     }
 
+    mayUpdate = false;
+
     updateActiveTimerEachSecond(){
         setInterval(() => {
-            if(!this.activeTimerLabel){
+            if(!this.activeTimerLabel || !this.mayUpdate){
                 return;
             }
             var accumulatedTime = this.timersDataAccumulated.get(this.activeTimerLabel.id);
@@ -285,9 +300,11 @@ class Timer {
     }
 
     async start(){
+
         if(this.container.classList.contains('active-timer')){
             return;
         }
+        (await TimeTracker.getInstance()).mayUpdate = false;
         this.timersData.push([this.id, this.code, this.timerLabels, DateFormatter.getDateTime()]);
         document.body.querySelectorAll('.active-timer').forEach(element => element.classList.remove('active-timer'));
         this.container.classList.add('active-timer');
@@ -296,6 +313,8 @@ class Timer {
         (await TimeTracker.getInstance()).addRegister([this.code, DateFormatter.getDateTime()]);
 
         (await TimeTracker.getInstance()).activeTimerLabel = document.getElementById(this.id);
+
+        (await TimeTracker.getInstance()).mayUpdate = true;
     }
 }
 
