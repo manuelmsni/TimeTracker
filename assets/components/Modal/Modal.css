@@ -1,0 +1,20 @@
+#modal-container {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+#modal-body {
+    overflow: hidden;
+    max-width: calc(100% - 2rem);
+    max-height: calc(100% - 2rem);
+}
+
+#dialog-icon {
+    max-width: 3rem;
+    aspect-ratio: 1/1;
+}
+
+#message-box {
+    display: flex;
+    justify-content: flex-start;
+    column-gap: 1rem;
+}

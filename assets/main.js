@@ -117,19 +117,22 @@ async function getInstance(className) {
 
 async function loadDependencies(){
     
-    Promise.all([
+    await Promise.all([
         getInstance('TimeTracker'),
-        getInstance('HistoricTable')
+        getInstance('HistoricTable'),
+        getInstance('Modal')
     ]);
 
 }
 
 async function load() {
     try {
-        loadDependencies();
+        await loadDependencies();
     } catch (error) {
         console.error(error);
     }
+
+    Modal.getInstance().then(modal=>modal.showMessage('La aplicación se encuentra en desarrollo. Podría haber funcionalidades incompletas.'));
 }
 
 class DateFormatter {

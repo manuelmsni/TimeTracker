@@ -49,7 +49,7 @@ class HistoricTable {
     
         this.tableBody = document.querySelector('#historic-table-body');
 
-        document.body.appendChild(this.container);
+        document.getElementById('content').appendChild(this.container);
     }
     addRegister(register){
         var dayData = this.data[DateFormatter.getDate()];

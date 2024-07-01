@@ -118,7 +118,7 @@ class TimeTracker {
         this.newTimer(newObjectId(), 'Daily', ['daily']);
         this.newTimer(newObjectId(), 'Descanso', ['descanso']);
 
-        document.body.prepend(this.container);
+        document.getElementById('content').prepend(this.container);
     }
 
     pause(){
