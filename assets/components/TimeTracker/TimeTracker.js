@@ -32,6 +32,8 @@ class TimeTracker {
 
     historicTable;
 
+    updateTimersEachSecond = true;
+
 
     constructor() {
         this.loaded = new Promise((resolve) => {
@@ -57,7 +59,9 @@ class TimeTracker {
 
         this.initBaseHtml();
 
-        this.updateActiveTimerEachSecond();
+        if(this.updateTimersEachSecond){
+            this.updateActiveTimerEachSecond();
+        }
         this.loadedPromiseResolver();
 
         window.addEventListener('beforeunload', function (e) {
@@ -176,6 +180,12 @@ class TimeTracker {
         var currentTotalForThatRegister = this.timersDataAccumulated.get(previousTimeRegister[0]) || 0;
         currentTotalForThatRegister += timeDiff;
         this.timersDataAccumulated.set(previousTimeRegister[0], currentTotalForThatRegister);
+
+        if(!this.updateTimersEachSecond){
+            this.activeTimerLabel.textContent = this.formatTime(currentTotalForThatRegister);
+            this.totalTime = Array.from(this.timersDataAccumulated.values()).reduce((acc, time) => acc + time, 0);
+        }
+        
     }
 
     mayUpdate = false;
@@ -303,9 +313,20 @@ class Timer {
         this.timerLabelsInput = this.container.querySelector('.timer-labels');
         this.timerLabelsInput.value = this.timerLabels.join(', ');
         this.timerLabelsInput.addEventListener('blur', () => {
-            this.timerLabels = this.timerLabelsInput.value
-            .split(',')
-            .map(label => label.trim().toLowerCase());
+            var labels = this.timerLabelsInput.value
+                .split(',')
+                .map(label => label.trim().toLowerCase())
+            if(labels.equals(this.timerLabels)){
+                return;
+            }
+            this.timersData.push([this.id, this.code, this.timerLabels, DateFormatter.getDateTime()]);
+            TimeTracker.getInstance().then(timeTracker => {
+                if(!this.container.classList.contains('active-timer')){
+                    return;
+                }
+                timeTracker.addRegister([this.id, this.code, this.timerLabels, DateFormatter.getDateTime()])
+            });
+            this.timerLabels = labels;
         });
 
         if(this.parentElement){
@@ -314,7 +335,6 @@ class Timer {
     }
 
     async start(){
-
         if(this.container.classList.contains('active-timer')){
             return;
         }
@@ -330,6 +350,7 @@ class Timer {
 
         (await TimeTracker.getInstance()).mayUpdate = true;
     }
+
 }
 
 window.TimeTracker = TimeTracker;

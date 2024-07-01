@@ -57,6 +57,23 @@ function newObjectId() {
     return objectId;
 }
 
+Array.prototype.equals = function(otherArray) {
+    if (!otherArray || this.length !== otherArray.length) {
+      return false;
+    }
+  
+    const sortedThis = this.slice().sort();
+    const sortedOther = otherArray.slice().sort();
+  
+    for (let i = 0; i < sortedThis.length; i++) {
+      if (sortedThis[i] !== sortedOther[i]) {
+        return false;
+      }
+    }
+  
+    return true;
+  };
+
 /* * * * * * * * * * * * * * * * * * *
  *                                   *
  *  Dependency management functions  *
