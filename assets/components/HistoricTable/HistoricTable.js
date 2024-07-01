@@ -8,6 +8,7 @@ class HistoricTable {
             <thead>
                 <tr>
                     <th>Code</th>
+                    <th>Labels</th>
                     <th>Time</th>
                 </tr>
             </thead>
@@ -59,8 +60,9 @@ class HistoricTable {
 
         const html = `
             <tr>
-                <td>${register[0]}</td>
-                <td>${register[1]}</td>
+                <td class="code_${register[0]}">${register[1]}</td>
+                <td>${register[2]}</td>
+                <td>${register[3]}</td>
             </tr>
         `;
         this.tableBody.insertAdjacentHTML('beforeend', html);

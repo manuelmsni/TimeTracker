@@ -282,8 +282,22 @@ class Timer {
 
         this.timerCodeInput = this.container.querySelector('.timer-code');
         this.timerCodeInput.value = this.code;
-        this.timerCodeInput.addEventListener('blur', () => {
-            this.code = this.timerCodeInput.value
+        this.timerCodeInput.addEventListener('blur', async () => {
+            var code = this.timerCodeInput.value;
+            if(this.code == code) {
+                return;
+            }
+            TimeTracker.getInstance().then( timeTracker => {
+                if(timeTracker.getTimerByCode(code) === undefined){
+                    document.querySelectorAll(`.code_${this.id}`).forEach(element => {
+                        element.innerText = code;
+                    });
+                    this.code = code;
+                } else {
+                    this.timerCodeInput.value = this.code;
+                    alert('Ya existe un timer con ese código');
+                }
+            });
         });
 
         this.timerLabelsInput = this.container.querySelector('.timer-labels');
@@ -310,7 +324,7 @@ class Timer {
         this.container.classList.add('active-timer');
         console.log(this.timersData);
 
-        (await TimeTracker.getInstance()).addRegister([this.code, DateFormatter.getDateTime()]);
+        (await TimeTracker.getInstance()).addRegister([this.id, this.code, this.timerLabels, DateFormatter.getDateTime()]);
 
         (await TimeTracker.getInstance()).activeTimerLabel = document.getElementById(this.id);
 
