@@ -1,13 +1,20 @@
-#format-options{
+#export-format-options {
     margin-bottom: 1rem;
     gap: 1rem;
 }
 
-#export-selection{
+#export-header {
+    
+}
+
+#export-selection {
     text-align: center;
+}
+
+#export-selection tr:last-child {
     border-bottom: 2px solid #282828;
 }
 
 #export-options{
-    margin-top: 1rem;
+    padding-top: 1rem;
 }

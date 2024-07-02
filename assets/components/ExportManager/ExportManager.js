@@ -6,8 +6,9 @@ class ExportManager {
 
     html = `
         <div id="export-format-options">
-            <button id="basic-timers-option">Basic</button>
-            <button id="detailed-timers-option">Detailed</button>
+            <p><strong>Format:</strong>  <button id="basic-timers-option">Basic</button> <button id="detailed-timers-option">Detailed</button></p>
+           
+            
         </div>
         <div>
             <table>
@@ -18,7 +19,7 @@ class ExportManager {
             </table>
         </div>
         <div id="export-options">
-            <button id="export-to-csv">Export to CSV</button>
+            <p><strong>Export options:</strong> <button id="export-to-csv">Export as CSV</button></p>
         </div>
     `;
 
@@ -38,7 +39,7 @@ class ExportManager {
             this.loadedPromiseResolver = resolve;
         });
     }
-    
+
     static async getInstance(){
             if (ExportManager.instance == null) {
                 ExportManager.instance = new ExportManager();
@@ -73,7 +74,6 @@ class ExportManager {
         this.loadBasicExportSelection();
 
         var exportToCSV = container.querySelector("#export-to-csv");
-        console.log(exportToCSV);
         exportToCSV.addEventListener("click", this.exportToCSV.bind(this));
 
         Modal.getInstance().then(modal => modal.loadWithContent(container));
