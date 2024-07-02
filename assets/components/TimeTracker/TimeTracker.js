@@ -126,10 +126,10 @@ class TimeTracker {
     }
 
     pause(){
-        let pauseTimer = this.getTimerByCode('pause');
+        let pauseTimer = this.getTimerById('pause');
 
         if (!pauseTimer) {
-            pauseTimer = this.newTimer(newObjectId(), 'Pausa', ['pause']);
+            pauseTimer = this.newTimer('pause', 'Salida');
         }
 
         pauseTimer.start();
