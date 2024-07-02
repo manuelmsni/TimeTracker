@@ -76,3 +76,10 @@
 .light {
     filter: opacity(.6);
 }
+
+@media screen and (max-width: 650px) {
+    .timer .inputGroup {
+        width: 100%;
+    }
+  }
+  

@@ -173,6 +173,17 @@ class DateFormatter {
     
         return `${year}_${month}_${day}`;
     }
+
+    static formatTimeFromMs(ms) {
+        let hours = Math.floor(ms / (1000 * 60 * 60));
+        let minutes = Math.floor((ms / (1000 * 60)) % 60);
+        let seconds = Math.floor((ms / 1000) % 60);
+        return [
+            hours.toString().padStart(2, '0'),
+            minutes.toString().padStart(2, '0'),
+            seconds.toString().padStart(2, '0')
+        ].join(':');
+    }
 }
 
 load();

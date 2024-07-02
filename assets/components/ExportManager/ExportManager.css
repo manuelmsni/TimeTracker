@@ -1,0 +1,13 @@
+#format-options{
+    margin-bottom: 1rem;
+    gap: 1rem;
+}
+
+#export-selection{
+    text-align: center;
+    border-bottom: 2px solid #282828;
+}
+
+#export-options{
+    margin-top: 1rem;
+}

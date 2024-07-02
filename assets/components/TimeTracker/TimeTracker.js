@@ -87,6 +87,10 @@ class TimeTracker {
         this.pauseButton.addEventListener('click', this.pause.bind(this));
 
         this.exportButton = this.container.querySelector('#time-tracker-export');
+        this.exportButton.addEventListener('click', async () => {
+            getInstance('ExportManager').then(exportManager => exportManager.openExportWindow());
+        });
+        /*
         this.exportButton.addEventListener('click', () => {
             var csv = 'data:text/csv;charset=utf-8,';
             this.timers.forEach(timer => {
@@ -106,7 +110,7 @@ class TimeTracker {
             document.body.appendChild(link);
             link.click();
         });
-
+        */
 
         this.timerContainer = this.container.querySelector('#timer-container');
 
@@ -137,8 +141,7 @@ class TimeTracker {
         }
         if(code === null) {
             var count = 0;
-            // Check correctly for undefined here
-            while(this.getTimerByCode(`timer-${count}`) !== undefined) {
+            while(this.getTimerByCode(`Timer${count}`) !== undefined) {
                 count++;
             }
             code = `Timer${count}`;
@@ -149,6 +152,10 @@ class TimeTracker {
         const timer = new Timer(this.timerContainer, this.timersData, id, code, timerLabels);
         this.timers.push(timer);
         return timer;
+    }
+
+    getTimerById(id){
+        return this.timers.find(timer => timer.id === id);
     }
 
     getTimerByCode(code){
@@ -315,7 +322,7 @@ class Timer {
         this.timerLabelsInput.addEventListener('blur', () => {
             var labels = this.timerLabelsInput.value
                 .split(',')
-                .map(label => label.trim().toLowerCase())
+                .map(label => label.trim().toLowerCase());
             if(labels.equals(this.timerLabels)){
                 return;
             }
@@ -338,17 +345,16 @@ class Timer {
         if(this.container.classList.contains('active-timer')){
             return;
         }
-        (await TimeTracker.getInstance()).mayUpdate = false;
-        this.timersData.push([this.id, this.code, this.timerLabels, DateFormatter.getDateTime()]);
-        document.body.querySelectorAll('.active-timer').forEach(element => element.classList.remove('active-timer'));
-        this.container.classList.add('active-timer');
-        console.log(this.timersData);
+        TimeTracker.getInstance().then(timeTracker =>{
+            timeTracker.mayUpdate = false;
+            this.timersData.push([this.id, this.code, this.timerLabels, DateFormatter.getDateTime()]);
+            document.body.querySelectorAll('.active-timer').forEach(element => element.classList.remove('active-timer'));
+            this.container.classList.add('active-timer');
 
-        (await TimeTracker.getInstance()).addRegister([this.id, this.code, this.timerLabels, DateFormatter.getDateTime()]);
-
-        (await TimeTracker.getInstance()).activeTimerLabel = document.getElementById(this.id);
-
-        (await TimeTracker.getInstance()).mayUpdate = true;
+            timeTracker.addRegister([this.id, this.code, this.timerLabels, DateFormatter.getDateTime()]);
+            timeTracker.activeTimerLabel = document.getElementById(this.id);
+            timeTracker.mayUpdate = true;
+        });
     }
 
 }
