@@ -184,6 +184,29 @@ class DateFormatter {
             seconds.toString().padStart(2, '0')
         ].join(':');
     }
+
+    static formatTimeForJira(ms, roundTo15 = false) {
+        let hours = Math.floor(ms / (1000 * 60 * 60));
+        let minutes = Math.floor((ms / (1000 * 60)) % 60);
+    
+        if (roundTo15 && (minutes >= 15 || hours != 0)) {
+            minutes = Math.round(minutes / 15) * 15;
+            if (minutes === 60) {
+                hours += 1;
+                minutes = 0;
+            }
+        }
+    
+        let result = [];
+        if (hours > 0) {
+            result.push(`${hours}h`);
+        }
+        if (minutes > 0) {
+            result.push(`${minutes}m`);
+        }
+    
+        return result.join(' ') || '0m';
+    }
 }
 
 load();

@@ -192,7 +192,6 @@ class TimeTracker {
             this.activeTimerLabel.textContent = this.formatTime(currentTotalForThatRegister);
             this.totalTime = Array.from(this.timersDataAccumulated.values()).reduce((acc, time) => acc + time, 0);
         }
-        
     }
 
     mayUpdate = false;

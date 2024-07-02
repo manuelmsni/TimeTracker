@@ -189,7 +189,7 @@ class ExportEntry {
     generateGUI(registerCode, milliseconds){
         var html = `
             <td>${registerCode}</td>
-            <td>${DateFormatter.formatTimeFromMs(milliseconds)}</td>
+            <td>${DateFormatter.formatTimeForJira(milliseconds)}</td>
             <td><textarea class="export-description" style="resize: none;">${this.description}</textarea></td>
             <td><input class="export-selector" type="checkbox"></td>
         `;
