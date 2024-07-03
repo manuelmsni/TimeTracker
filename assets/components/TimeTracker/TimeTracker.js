@@ -177,14 +177,13 @@ class TimeTracker {
     }
 
     updateTimerLabels(timer, newLabels){
-        timer.timerLabels = newLabels;
-        if(this.activeTimer && this.activeTimer.id != timer.id){
-            console.log('exiting');
+        if(!this.activeTimer || this.activeTimer.id != timer.id){
             return;
         }
         var time = this.getTimeInMilliseconds();
         var register = [timer.id, timer.code, newLabels, time];
         var timeDifference = time - (this.getLastRegisterTime() || time);
+        
         this.registers.push(register);
         this.addAccumulatedBasicRegister(timer, timeDifference);
         this.addAccumulatedDetailedRegister(timer, timeDifference);
@@ -363,14 +362,18 @@ class Timer {
         this.timerLabelsInput.addEventListener('blur', () => {
             var labels = this.timerLabelsInput.value
                 .split(',')
-                .map(label => label.trim().toLowerCase()).sort();
+                .map(label => label.trim().toLowerCase())
+                .filter(label => label !== '')
+                .sort();
             if(labels.equals(this.timerLabels)){
+                this.timerLabelsInput.value = this.timerLabels.join(', ');
                 return;
             }
             TimeTracker.getInstance().then(timeTracker => {
                 timeTracker.updateTimerLabels(this, labels)
             });
-            
+            this.timerLabels = labels;
+            this.timerLabelsInput.value = labels.join(', ');
         });
 
         if(this.parentElement){
