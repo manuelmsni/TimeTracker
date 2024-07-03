@@ -103,6 +103,55 @@ function formatDateTime(ms) {
     return `${formatDate(date)} ${formatTime(ms)}`;
 }
 
+function formatTimeForJira(ms, roundTo15 = false) {
+    let hours = Math.floor(ms / (1000 * 60 * 60));
+    let minutes = Math.floor((ms / (1000 * 60)) % 60);
+
+    if (roundTo15 && (minutes >= 15 || hours != 0)) {
+        minutes = Math.round(minutes / 15) * 15;
+        if (minutes === 60) {
+            hours += 1;
+            minutes = 0;
+        }
+    }
+
+    let result = [];
+    if (hours > 0) {
+        result.push(`${hours}h`);
+    }
+    if (minutes > 0) {
+        result.push(`${minutes}m`);
+    }
+
+    return result.join(' ') || '0m';
+}
+
+function parseTimeFromJira(timeStr) {
+    timeStr = timeStr.trim();
+    if (timeStr === '') {
+        return null;
+    }
+    const validFormatRegex = /^(\d+h\s*)?(\d+m\s*)?$/;
+    if (!validFormatRegex.test(timeStr)) {
+        return null;
+    }
+    let totalMilliseconds = 0;
+    const regex = /(\d+)([hm])/g;
+    let match;
+    while ((match = regex.exec(timeStr)) !== null) {
+        const value = parseInt(match[1], 10);
+        const unit = match[2];
+
+        if (unit === 'h') {
+            totalMilliseconds += value * 60 * 60 * 1000;
+        } else if (unit === 'm') {
+            totalMilliseconds += value * 60 * 1000;
+        }
+    }
+    return totalMilliseconds;
+}
+
+
 /* * * * * * * * * * * * * * * *
  *                             *
  *  General purpose functions  *

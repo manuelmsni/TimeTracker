@@ -185,13 +185,19 @@ class ExportEntry {
     generateGUI(registerCode, milliseconds){
         var html = `
             <td>${registerCode}</td>
-            <td>${DateFormatter.formatTimeForJira(milliseconds)}</td>
-            <td><textarea class="export-description" style="resize: none;">${this.description}</textarea></td>
+            <td><textarea class="export-time">${formatTimeForJira(milliseconds)}</textarea></td>
+            <td><textarea class="export-description">${this.description}</textarea></td>
             <td><input class="export-selector" type="checkbox"></td>
         `;
 
         var row = document.createElement("tr");
         row.innerHTML = html;
+
+        var timeInput = row.querySelector(".export-time");
+        timeInput.addEventListener("blur", () => {
+            this.milliseconds = parseTimeFromJira(timeInput.value) || this.milliseconds;
+            timeInput.value = formatTimeForJira(this.milliseconds);
+        });
 
         var descriptionInput = row.querySelector(".export-description");
         descriptionInput.addEventListener('blur', () => {
@@ -205,6 +211,11 @@ class ExportEntry {
         checkInput.checked = this.checked;
         checkInput.addEventListener("change", () => {
             this.checked = checkInput.checked;
+            if(this.checked){
+                row.classList.remove("darker");
+            } else {
+                row.classList.add("darker");
+            }
             ExportManager.getInstance().then( exportManager => {
                 exportManager.checkInputsCache.set(this.id, this.checked);
             });

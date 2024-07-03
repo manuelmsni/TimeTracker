@@ -11,10 +11,31 @@
     text-align: center;
 }
 
+#export-selection td {
+    vertical-align: middle;
+}
+
 #export-selection tr:last-child {
     border-bottom: 2px solid #282828;
 }
 
 #export-options{
     padding-top: 1rem;
+}
+
+.export-time {
+    resize: none;
+    max-height: 3rem;
+    width: 5rem;
+    text-align: center;
+    padding-top: 1rem;
+    box-sizing: border-box;
+    text-align-last: center;
+}
+
+.export-description {
+    resize: none;
+    height: 3rem;
+    padding: .5rem;
+    box-sizing: border-box;
 }

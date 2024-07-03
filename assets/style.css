@@ -221,3 +221,7 @@ button:active {
   padding-left: 9px;
   padding-right: 9px;
 }
+
+.darker {
+  filter: opacity(.7);
+}
