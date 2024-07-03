@@ -213,3 +213,11 @@ button:active {
 .inputGroup :is(input:focus, input:valid) {
     border-color: rgb(150, 150, 200);
 }
+
+.label {
+  background-color: #e8e8e8;
+  padding: 2px;
+  border-radius: 10px;
+  padding-left: 9px;
+  padding-right: 9px;
+}

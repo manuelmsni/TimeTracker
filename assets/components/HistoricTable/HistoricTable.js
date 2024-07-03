@@ -61,8 +61,8 @@ class HistoricTable {
         const html = `
             <tr>
                 <td class="code_${register[0]}">${register[1]}</td>
-                <td>${register[2]}</td>
-                <td>${register[3]}</td>
+                <td>${register[2].map(label => `<span class="label">${label}</span>`).join(" ")}</td>
+                <td>${formatDateTime(register[3])}</td>
             </tr>
         `;
         this.tableBody.insertAdjacentHTML('beforeend', html);

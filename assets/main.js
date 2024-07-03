@@ -47,15 +47,13 @@ String.prototype.isNullOrEmpty = function(){
     return /^[ \t\n\r\x0B\x0C]*$/.test(str);
 }
 
-function newObjectId() {
-    const timestamp = Math.floor(new Date().getTime() / 1000).toString(16);
-    let objectId = timestamp;
-    const characters = '0123456789abcdef';
-    for (let i = 0; i < 16; i++) {  // solo agregamos 16 caracteres más para hacer 24
-        objectId += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-    return objectId;
-}
+
+
+/* * * * * * * * * * * * * * *
+ *                           *
+ *  Useful Arrays functions  *
+ *                           *
+ * * * * * * * * * * * * * * */
 
 Array.prototype.equals = function(otherArray) {
     if (!otherArray || this.length !== otherArray.length) {
@@ -73,6 +71,54 @@ Array.prototype.equals = function(otherArray) {
   
     return true;
   };
+
+/* * * * * * * * * * * * * *
+ *                         *
+ *  Time format functions  *
+ *                         *
+ * * * * * * * * * * * * * */
+
+function formatTime(ms) {
+    let totalSeconds = Math.floor(ms / 1000);
+    let seconds = totalSeconds % 60;
+    let totalMinutes = Math.floor(totalSeconds / 60);
+    let minutes = totalMinutes % 60;
+    let totalHours = Math.floor(totalMinutes / 60);
+    let hours = totalHours % 24;  // Horas restantes del día
+
+    return [
+        hours.toString().padStart(2, '0'),
+        minutes.toString().padStart(2, '0'),
+        seconds.toString().padStart(2, '0')
+    ].join(':');
+}
+
+function formatDate(ms) {
+    date = new Date(ms);
+    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+}
+
+function formatDateTime(ms) {
+    date = new Date(ms);
+    return `${formatDate(date)} ${formatTime(ms)}`;
+}
+
+/* * * * * * * * * * * * * * * *
+ *                             *
+ *  General purpose functions  *
+ *                             *
+ * * * * * * * * * * * * * * * */
+
+function newObjectId() {
+    const timestamp = Math.floor(new Date().getTime() / 1000).toString(16);
+    let objectId = timestamp;
+    const characters = '0123456789abcdef';
+    // 16 random characters to reach 24
+    for (let i = 0; i < 16; i++) {
+        objectId += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return objectId;
+}
 
 /* * * * * * * * * * * * * * * * * * *
  *                                   *

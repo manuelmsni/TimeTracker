@@ -98,14 +98,10 @@ class ExportManager {
                     <th>Export</th>
                 </tr>
             `;
-            timeTracker.timersDataAccumulated.forEach((value, key) => {
+            timeTracker.basicAccumulatedRegisters.forEach((value, key) => {
                 var timer = timeTracker.getTimerById(key);
                 var milliseconds;
-                if (key == timeTracker.activeTimerLabel.id) {
-                    milliseconds = timeTracker.getActiveAccumulatedTime();
-                } else{
-                    milliseconds = value;
-                }
+                milliseconds = timeTracker.getBasicAccumulatedTime(key);
                 this.entries.push(new ExportEntry(
                     this.exportSelectionContainer,
                     key,
