@@ -146,7 +146,7 @@ class ExportManager {
         var csv = 'data:text/csv;charset=utf-8,';
         this.entries.forEach(entry => {
             if(entry.checked){
-                var time = DateFormatter.formatTimeFromMs(entry.milliseconds);
+                var time = formatTimeForJira(entry.milliseconds);
                 csv += entry.code + ';' + entry.labels.join(',') + ';' + entry.description + ';' + time + '\n';
             }
         });
