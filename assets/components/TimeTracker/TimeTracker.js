@@ -59,7 +59,7 @@ class TimeTracker {
         this.loadedPromiseResolver();
 
         window.addEventListener('beforeunload', function (e) {
-            if(this.timersData.length < 1 && timersDataAccumulated.size < 1) {
+            if(this.getTotalTime() < 1) {
                 return;
             }
             e.preventDefault(); 
@@ -233,7 +233,8 @@ class TimeTracker {
     }
 
     getTimeSinceLastRegister(){
-        return this.getTimeInMilliseconds() - this.getLastRegisterTime();
+        var time = this.getTimeInMilliseconds();
+        return time - (this.getLastRegisterTime() || time);
     }
 
     getBasicAccumulatedTime(id){
