@@ -93,6 +93,17 @@ function formatTime(ms) {
     ].join(':');
 }
 
+function formatTimeFull(ms) {
+    let hours = Math.floor(ms / (1000 * 60 * 60));
+    let minutes = Math.floor((ms / (1000 * 60)) % 60);
+    let seconds = Math.floor((ms / 1000) % 60);
+    return [
+        hours.toString().padStart(2, '0'),
+        minutes.toString().padStart(2, '0'),
+        seconds.toString().padStart(2, '0')
+    ].join(':');
+}
+
 function formatDate(ms) {
     date = new Date(ms);
     return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
@@ -218,6 +229,10 @@ async function loadDependencies(){
         getInstance('Modal')
     ]);
 
+}
+
+function clear(){
+    localStorage.setItem('historicTableData', "");
 }
 
 async function load() {

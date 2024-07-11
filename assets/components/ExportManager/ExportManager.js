@@ -79,39 +79,60 @@ class ExportManager {
         Modal.getInstance().then(modal => modal.loadWithContent(container));
     }
 
-    loadBasicExportSelection(){
-        if(this.basicOptionButton.classList.contains("active")){
+    loadBasicExportSelection() {
+        if (this.basicOptionButton.classList.contains("active")) {
             return;
         }
+    
         TimeTracker.getInstance().then(timeTracker => {
-            this.entries = [];
-            this.exportSelectionContainer.innerHTML = "";
-            this.formatOptionsContainer.querySelectorAll(".active").forEach(button => {
-                button.classList.remove("active")
-            });
-            this.basicOptionButton.classList.add("active");
-            this.exportSelectionHeader.innerHTML = `
-                <tr>
-                    <th>Code</th>
-                    <th>Time</th>
-                    <th>Description</th>
-                    <th>Export</th>
-                </tr>
-            `;
-            timeTracker.basicAccumulatedRegisters.forEach((value, key) => {
-                var timer = timeTracker.getTimerById(key);
-                var milliseconds;
-                milliseconds = timeTracker.getBasicAccumulatedTime(key);
+            this.clearPreviousSelection();
+            this.setBasicOptionActive();
+            this.renderTableHeader();
+    
+            const sortedTimers = this.sortTimersByAccumulatedTime(timeTracker);
+    
+            sortedTimers.forEach(timer => {
                 this.entries.push(new ExportEntry(
                     this.exportSelectionContainer,
-                    key,
+                    timer.id,
                     timer.code,
-                    milliseconds,
+                    timeTracker.getBasicAccumulatedTime(timer.id),
                     timer.timerLabels,
-                    this.descriptionsCache.get(key),
-                    this.checkInputsCache.get(key)
+                    this.descriptionsCache.get(timer.id),
+                    this.checkInputsCache.get(timer.id)
                 ));
             });
+        });
+    }
+    
+    clearPreviousSelection() {
+        this.entries = [];
+        this.exportSelectionContainer.innerHTML = "";
+        this.formatOptionsContainer.querySelectorAll(".active").forEach(button => {
+            button.classList.remove("active");
+        });
+    }
+    
+    setBasicOptionActive() {
+        this.basicOptionButton.classList.add("active");
+    }
+    
+    renderTableHeader() {
+        this.exportSelectionHeader.innerHTML = `
+            <tr>
+                <th>Code</th>
+                <th>Time</th>
+                <th>Description</th>
+                <th>Export</th>
+            </tr>
+        `;
+    }
+
+    sortTimersByAccumulatedTime(timeTracker) {
+        return timeTracker.timers.sort((a, b) => {
+            const timeA = timeTracker.getBasicAccumulatedTime(a.id);
+            const timeB = timeTracker.getBasicAccumulatedTime(b.id);
+            return timeB - timeA;
         });
     }
 
@@ -192,7 +213,6 @@ class ExportEntry {
 
         var row = document.createElement("tr");
         row.innerHTML = html;
-
         var timeInput = row.querySelector(".export-time");
         timeInput.addEventListener("blur", () => {
             this.milliseconds = parseTimeFromJira(timeInput.value) || this.milliseconds;
@@ -209,6 +229,10 @@ class ExportEntry {
 
         var checkInput = row.querySelector(".export-selector");
         checkInput.checked = this.checked;
+        if(milliseconds < 1) {
+            row.classList.add("darker");
+            checkInput.checked = false;
+        }
         checkInput.addEventListener("change", () => {
             this.checked = checkInput.checked;
             if(this.checked){

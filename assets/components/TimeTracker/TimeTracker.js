@@ -34,9 +34,6 @@ class TimeTracker {
             this.loadedPromiseResolver = resolve;
         });
         this.timers = [];
-        this.registers = [];
-        this.basicAccumulatedRegisters = new Map();
-        this.detailedAccumulatedRegisters = new Map();
     }
 
     static async getInstance(){
@@ -97,21 +94,53 @@ class TimeTracker {
             this.newTimer(newObjectId(), null, []);
         });
 
-        this.newTimer(newObjectId(), 'Daily', ['daily']);
-        this.newTimer(newObjectId(), 'Descanso', ['descanso']);
-
+        this.initTodayData();
+        
         document.getElementById('content').prepend(this.container);
     }
 
+    initTodayData() {
+        var todayRegisters = this.historicTable.getTodayRegisters();
 
-    // Data model
+        if (todayRegisters.length == 0) {
+            this.newTimer(newObjectId(), 'Daily', ['daily']);
+            this.newTimer(newObjectId(), 'Descanso', ['descanso']);
+        } else {
+            for(var i = 0; i < todayRegisters.length; i++){
+                var register = todayRegisters[i];
+                this.updateTimersEachSecond = false;
+
+                var id = register[0];
+                var code = register[1];
+                var labels = register[2];
+                var time = register[3];
+
+                var timer = this.getTimerById(id);
+                if(timer == null){
+                    timer = this.newTimer(id, code, labels);
+                }
+
+                if(i > 0){
+                    var previousRegister = todayRegisters[i - 1];
+                    var lastRegisterId = previousRegister[0];
+                    var previousTime = previousRegister[3];
+                    var timeDifference = time - previousTime;
+                    var previousTimer = this.getTimerById(lastRegisterId);
+                    this.addTime(previousTimer, timeDifference);
+                }
+
+                this.historicTable.generateRegisterGUI(register);
+                
+                this.activeTimer = timer;
+
+                this.updateTimersEachSecond = true;
+            }
+        }
+        
+    }
 
     timers;
-
     registers;
-    basicAccumulatedRegisters;
-    detailedAccumulatedRegisters;
-
     activeTimer;
 
     getTimerById(id){
@@ -162,16 +191,9 @@ class TimeTracker {
         var time = this.getTimeInMilliseconds();
         var register = [timer.id, timer.code, timer.timerLabels, time];
         var timeDifference = time - (this.getLastRegisterTime() || time);
-        this.registers.push(register);
+        
         if(previousTimer){
-            this.addAccumulatedBasicRegister(previousTimer, timeDifference);
-            this.addAccumulatedDetailedRegister(previousTimer, timeDifference);
-        }
-        if(!this.getBasicAccumulatedTime(timer.id)){
-            this.addAccumulatedBasicRegister(timer, 0);
-        }
-        if(!this.getDetailedAccumulatedTime(timer.id)){
-            this.addAccumulatedDetailedRegister(timer, 0);
+            this.addTime(previousTimer, timeDifference);
         }
         this.historicTable.addRegister(register);
     }
@@ -184,14 +206,20 @@ class TimeTracker {
         var register = [timer.id, timer.code, newLabels, time];
         var timeDifference = time - (this.getLastRegisterTime() || time);
         
-        this.registers.push(register);
-        this.addAccumulatedBasicRegister(timer, timeDifference);
-        this.addAccumulatedDetailedRegister(timer, timeDifference);
+        this.addTime(timer, timeDifference);
         this.historicTable.addRegister(register); 
     }
 
+    addTime(timer, timeDifference){
+        timer.addTime(timeDifference);
+    }
+
     getLastRegister(){
-        return this.registers[this.registers.length - 1];
+        var registers = this.historicTable.getTodayRegisters();
+        if(!registers){
+            return null;
+        }
+        return registers[registers.length - 1];
     }
 
     getLastRegisterId(){
@@ -210,51 +238,22 @@ class TimeTracker {
         return this.getLastRegister()[3];
     }
 
-    addAccumulatedBasicRegister(timer, timeDifference){
-        var accumulated = (this.basicAccumulatedRegisters.get(timer.id) || 0) + timeDifference;
-        this.basicAccumulatedRegisters.set(timer.id, accumulated);
-        timer.timeLabel.textContent = this.formatTime(accumulated);
-    }
-
-    addAccumulatedDetailedRegister(timer, timeDifference){
-        var accumulated = (this.detailedAccumulatedRegisters.get(this.getDetailedKey(timer)) || 0) + timeDifference;
-        this.detailedAccumulatedRegisters.set(this.getDetailedKey(timer), accumulated);
-    }
-
-    getDetailedKey(timer){
-        var labels = timer.timerLabels.sort().join(',');
-        return timer.id + "_" + labels;
-    }
-
-    getDetailedKeyByTimerId(id){
-        var timer = this.getTimerById(id);
-        var labels = timer.timerLabels.sort().join(',');
-        return timer.id + "_" + labels;
-    }
-
     getTimeSinceLastRegister(){
         var time = this.getTimeInMilliseconds();
         return time - (this.getLastRegisterTime() || time);
     }
 
     getBasicAccumulatedTime(id){
-        var accumulatedTime = this.basicAccumulatedRegisters.get(id) || 0;
+        var timer = this.getTimerById(id);
+        var time = timer.totalTime;
         if(this.activeTimer && id == this.activeTimer.id){
-            accumulatedTime += this.getTimeSinceLastRegister(); 
+            time += this.getTimeSinceLastRegister(); 
         }
-        return accumulatedTime;
-    }
-
-    getDetailedAccumulatedTime(id){
-        var accumulatedTime = this.detailedAccumulatedRegisters.get(this.getDetailedKeyByTimerId(id)) || 0;
-        if(this.activeTimer && id == this.activeTimer.id){
-            accumulatedTime += this.getTimeSinceLastRegister(); 
-        }
-        return accumulatedTime;
+        return time;
     }
 
     getTotalTime(){
-        return Array.from(this.basicAccumulatedRegisters.values()).reduce((acc, time) => acc + time, 0) + this.getTimeSinceLastRegister();
+        return this.getTimeSinceLastRegister() + this.timers.reduce((acc, timer) => acc + timer.totalTime, 0);
     }
 
     updateActiveTimerEachSecond(){
@@ -262,20 +261,9 @@ class TimeTracker {
             if(!this.activeTimer || !this.updateTimersEachSecond){
                 return;
             }
-            this.activeTimer.timeLabel.innerText = this.formatTime(this.getBasicAccumulatedTime(this.activeTimer.id));
-            this.totalTimeLabel.innerText = this.formatTime(this.getTotalTime());
+            this.activeTimer.timeLabel.innerText = formatTimeFull(this.getBasicAccumulatedTime(this.activeTimer.id));
+            this.totalTimeLabel.innerText = formatTimeFull(this.getTotalTime());
         }, 1000);
-    }
-
-    formatTime(ms) {
-        let hours = Math.floor(ms / (1000 * 60 * 60));
-        let minutes = Math.floor((ms / (1000 * 60)) % 60);
-        let seconds = Math.floor((ms / 1000) % 60);
-        return [
-            hours.toString().padStart(2, '0'),
-            minutes.toString().padStart(2, '0'),
-            seconds.toString().padStart(2, '0')
-        ].join(':');
     }
 
     pause(){
@@ -285,7 +273,6 @@ class TimeTracker {
         }
         pauseTimer.start();
     }
-
     
 }
 
@@ -313,12 +300,18 @@ class Timer {
     id;
     code;
     timerLabels;
+
+    totalTime;
+    totalTimeByLabels;
     
     constructor(parentElement, id, code = "", timerLabels = []) {
         this.parentElement = parentElement;
         this.timerLabels = timerLabels.sort();
         this.id = id;
         this.code = code;
+
+        this.totalTime = 0;
+        this.totalTimeByLabels = new Map();
 
         this.init();
     }
@@ -383,18 +376,6 @@ class Timer {
     }
 
     async start(){
-        /*
-        TimeTracker.getInstance().then(timeTracker => {
-            timeTracker.mayUpdate = false;
-            this.timersData.push([this.id, this.code, this.timerLabels, DateFormatter.getDateTime()]);
-            document.body.querySelectorAll('.active-timer').forEach(element => element.classList.remove('active-timer'));
-            this.container.classList.add('active-timer');
-
-            timeTracker.addRegister([this.id, this.code, this.timerLabels, DateFormatter.getDateTime()]);
-            timeTracker.activeTimerLabel = document.getElementById(this.id);
-            timeTracker.mayUpdate = true;
-        });*/
-
         TimeTracker.getInstance().then(timeTracker => {
             if(timeTracker.activeTimer){
                 if(this.id == timeTracker.activeTimer.id){
@@ -405,6 +386,22 @@ class Timer {
             this.container.classList.add('active-timer');
             timeTracker.setActiveTimer(this);
         });
+    }
+
+    addTime(time){
+        this.totalTime += time;
+        this.timeLabel.textContent = formatTimeFull(this.totalTime);
+        var labels = this.getLabelsAsString();
+        var timeByLabel =  this.totalTimeByLabels.get(labels) || 0;
+        this.totalTimeByLabels.set(labels, timeByLabel += time);
+    }
+
+    getLabelsAsString(labels = this.timerLabels){
+        return labels.sort().join(',');
+    }
+
+    getDetailedAccumulatedTime(labels){
+        return this.totalTimeByLabels.get(labels) || 0;
     }
 
 }

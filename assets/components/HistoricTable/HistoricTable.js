@@ -25,8 +25,10 @@ class HistoricTable {
         this.loaded = new Promise((resolve) => {
             this.loadedPromiseResolver = resolve;
         });
-        this.data = {};
+        const storedData = localStorage.getItem('historicTableData');
+        this.data = storedData ? JSON.parse(storedData) : {};
     }
+
     static async getInstance(){
         if (HistoricTable.instance == null) {
             HistoricTable.instance = new HistoricTable();
@@ -35,12 +37,14 @@ class HistoricTable {
         await HistoricTable.instance.loaded;
         return HistoricTable.instance;
     }
+
     async init() {
         await loadStyle('HistoricTable');
         this.initBaseHtml();
         this.loadedPromiseResolver();
         console.log("HistoricTable initialized");
     }
+
     initBaseHtml(){
         this.container = document.createElement('section');
         this.container.id = 'historic-table-container';
@@ -51,13 +55,23 @@ class HistoricTable {
 
         document.getElementById('content').appendChild(this.container);
     }
-    addRegister(register){
-        var dayData = this.data[DateFormatter.getDate()];
-        if(!dayData){
-            dayData = [];
-        }
-        dayData.push(register);
 
+    addRegister(register){
+        const date = DateFormatter.getDate();
+        if (!this.data[date]) {
+            this.data[date] = [];
+        }
+        this.data[date].push(register);
+        this.saveData();
+        this.generateRegisterGUI(register);
+    }
+
+    saveData() {
+        const serializedData = JSON.stringify(this.data);
+        localStorage.setItem('historicTableData', serializedData);
+    }
+
+    generateRegisterGUI(register) {
         const html = `
             <tr>
                 <td class="code_${register[0]}">${register[1]}</td>
@@ -66,6 +80,10 @@ class HistoricTable {
             </tr>
         `;
         this.tableBody.insertAdjacentHTML('beforeend', html);
+    }
+
+    getTodayRegisters() {
+        return this.data[DateFormatter.getDate()] || [];
     }
 }
 
