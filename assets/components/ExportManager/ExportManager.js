@@ -87,12 +87,12 @@ class ExportManager {
         TimeTracker.getInstance().then(timeTracker => {
             this.clearPreviousSelection();
             this.setBasicOptionActive();
-            this.renderTableHeader();
+            this.renderBasicTableHeader();
     
             const sortedTimers = this.sortTimersByAccumulatedTime(timeTracker);
     
             sortedTimers.forEach(timer => {
-                this.entries.push(new ExportEntry(
+                var entry = new ExportEntry(
                     this.exportSelectionContainer,
                     timer.id,
                     timer.code,
@@ -100,7 +100,9 @@ class ExportManager {
                     timer.timerLabels,
                     this.descriptionsCache.get(timer.id),
                     this.checkInputsCache.get(timer.id)
-                ));
+                );
+                console.log(entry);
+                this.entries.push(entry);
             });
         });
     }
@@ -117,7 +119,7 @@ class ExportManager {
         this.basicOptionButton.classList.add("active");
     }
     
-    renderTableHeader() {
+    renderBasicTableHeader() {
         this.exportSelectionHeader.innerHTML = `
             <tr>
                 <th>Code</th>
@@ -140,24 +142,47 @@ class ExportManager {
         if(this.detailedOptionButton.classList.contains("active")){
             return;
         }
+
         TimeTracker.getInstance().then(timeTracker => {
-            this.entries = [];
-            this.exportSelectionContainer.innerHTML = "";
-            this.formatOptionsContainer.querySelectorAll(".active").forEach(button => {
-                button.classList.remove("active")
+            this.clearPreviousSelection();
+            this.setDetailedOptionActive();
+            this.renderDetailedTableHeader();
+
+            timeTracker.timers.forEach(timer => {
+                timer.totalTimeByLabels.forEach((entry, labels) => {
+                    var entry = new ExportEntry(
+                        this.exportSelectionContainer,
+                        entry.id,
+                        timer.code,
+                        entry.milliseconds,
+                        labels,
+                        this.descriptionsCache.get(entry.id),
+                        this.checkInputsCache.get(entry.id)
+                    );
+                    console.log(entry);
+                    this.entries.push(entry);
+                });
             });
-            this.detailedOptionButton.classList.add("active");
-            this.exportSelectionHeader.innerHTML = `
-                <tr>
-                    <th>Code</th>
-                    <th>Labels</th>
-                    <th>Time</th>
-                    <th>Description</th>
-                    <th>Export</th>
-                </tr>
-            `;
         });
     }
+
+    setDetailedOptionActive(){
+        this.detailedOptionButton.classList.add("active");
+    }
+
+    renderDetailedTableHeader(){
+        this.exportSelectionHeader.innerHTML = `
+        <tr>
+            <th>Code</th>
+            <th>Labels</th>
+            <th>Time</th>
+            <th>Description</th>
+            <th>Export</th>
+        </tr>
+    `;
+    }
+
+
 
     async exportToCSV(){
         if(!this.entries || this.entries.filter(entry => entry.checked).length < 1) {

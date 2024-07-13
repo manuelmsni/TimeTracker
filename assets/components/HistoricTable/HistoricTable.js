@@ -66,6 +66,23 @@ class HistoricTable {
         this.generateRegisterGUI(register);
     }
 
+    editRegisterCode(id, code){
+        var data = this.getTodayRegisters();
+        if (!data) {
+            return;
+        }
+        var changed;
+        data.forEach(element => {
+            if(element[0] == id){
+                element[1] = code;
+                changed = true;
+            }
+        });
+        if(changed){
+            this.saveData();
+        }
+    }
+
     saveData() {
         const serializedData = JSON.stringify(this.data);
         localStorage.setItem('historicTableData', serializedData);

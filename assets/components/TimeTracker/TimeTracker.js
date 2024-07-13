@@ -103,8 +103,8 @@ class TimeTracker {
         var todayRegisters = this.historicTable.getTodayRegisters();
 
         if (todayRegisters.length == 0) {
-            this.newTimer(newObjectId(), 'Daily', ['daily']);
-            this.newTimer(newObjectId(), 'Descanso', ['descanso']);
+            this.newTimer('daily', 'Daily', ['daily']);
+            this.newTimer('descanso', 'Descanso', ['descanso']);
         } else {
             for(var i = 0; i < todayRegisters.length; i++){
                 var register = todayRegisters[i];
@@ -118,6 +118,9 @@ class TimeTracker {
                 var timer = this.getTimerById(id);
                 if(timer == null){
                     timer = this.newTimer(id, code, labels);
+                } else {
+                    timer.timerLabels = labels;
+                    timer.timerLabelsInput.value = labels.join(', ');
                 }
 
                 if(i > 0){
@@ -134,6 +137,12 @@ class TimeTracker {
                 this.activeTimer = timer;
 
                 this.updateTimersEachSecond = true;
+            }
+            if(!this.getTimerById('daily')){
+                this.newTimer('daily', 'Daily', ['daily']);
+            }
+            if(!this.getTimerById('descanso')){
+                this.newTimer('descanso', 'Descanso', ['descanso']);
             }
         }
         
@@ -333,46 +342,51 @@ class Timer {
 
         this.timerCodeInput = this.container.querySelector('.timer-code');
         this.timerCodeInput.value = this.code;
-        this.timerCodeInput.addEventListener('blur', async () => {
-            var code = this.timerCodeInput.value;
-            if(this.code == code) {
-                return;
-            }
-            TimeTracker.getInstance().then( timeTracker => {
-                if(timeTracker.getTimerByCode(code) === undefined){
-                    document.querySelectorAll(`.code_${this.id}`).forEach(element => {
-                        element.innerText = code;
-                    });
-                    this.code = code;
-                } else {
-                    this.timerCodeInput.value = this.code;
-                    alert('Ya existe un timer con ese código');
-                }
-            });
-        });
+        this.timerCodeInput.addEventListener('blur', this.codeInputController.bind(this));
 
         this.timerLabelsInput = this.container.querySelector('.timer-labels');
         this.timerLabelsInput.value = this.timerLabels.join(', ');
-        this.timerLabelsInput.addEventListener('blur', () => {
-            var labels = this.timerLabelsInput.value
-                .split(',')
-                .map(label => label.trim().toLowerCase())
-                .filter(label => label !== '')
-                .sort();
-            if(labels.equals(this.timerLabels)){
-                this.timerLabelsInput.value = this.timerLabels.join(', ');
-                return;
-            }
-            TimeTracker.getInstance().then(timeTracker => {
-                timeTracker.updateTimerLabels(this, labels)
-            });
-            this.timerLabels = labels;
-            this.timerLabelsInput.value = labels.join(', ');
-        });
+        this.timerLabelsInput.addEventListener('blur', this.labelInputController.bind(this));
 
         if(this.parentElement){
             this.parentElement.appendChild(this.container);
         }
+    }
+
+    codeInputController(){
+        var code = this.timerCodeInput.value;
+        if(this.code == code) {
+            return;
+        }
+        TimeTracker.getInstance().then( timeTracker => {
+            if(timeTracker.getTimerByCode(code) === undefined){
+                document.querySelectorAll(`.code_${this.id}`).forEach(element => {
+                    element.innerText = code;
+                });
+                timeTracker.historicTable.editRegisterCode(this.id, code);
+                this.code = code;
+            } else {
+                this.timerCodeInput.value = this.code;
+                alert('Ya existe un timer con ese código');
+            }
+        });
+    }
+
+    labelInputController(){
+        var labels = this.timerLabelsInput.value
+            .split(',')
+            .map(label => label.trim().toLowerCase())
+            .filter(label => label !== '')
+            .sort();
+        if(labels.equals(this.timerLabels)){
+            this.timerLabelsInput.value = this.timerLabels.join(', ');
+            return;
+        }
+        TimeTracker.getInstance().then(timeTracker => {
+            timeTracker.updateTimerLabels(this, labels)
+        });
+        this.timerLabels = labels;
+        this.timerLabelsInput.value = labels.join(', ');
     }
 
     async start(){
